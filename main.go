@@ -2,8 +2,8 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
+	"net/http"
 )
 
 type person struct {
@@ -11,6 +11,12 @@ type person struct {
 }
 
 func main() {
+	http.HandleFunc("/encode", encode)
+	http.HandleFunc("/decode", decode)
+	http.ListenAndServe(":8080", nil)
+}
+
+func encode(w http.ResponseWriter, r *http.Request) {
 	p1 := person{
 		First: "John",
 	}
@@ -18,11 +24,20 @@ func main() {
 		First: "Jane",
 	}
 
-	xp := []person{p1, p2}
-
-	bs, err := json.Marshal(xp)
+	people := []person{p1, p2}
+	err := json.NewEncoder(w).Encode(people)
 	if err != nil {
-		log.Panic(err)
+		log.Println(err)
+		return
 	}
-	fmt.Println(string(bs))
+}
+
+func decode(w http.ResponseWriter, r *http.Request) {
+	var people []person
+	err := json.NewDecoder(r.Body).Decode(&people)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	log.Println(people)
 }
