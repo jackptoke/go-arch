@@ -2,7 +2,9 @@ package main
 
 import (
 	"encoding/json"
+	"go-arch/security"
 	"log"
+	"math/rand"
 	"net/http"
 )
 
@@ -10,13 +12,28 @@ type person struct {
 	First string
 }
 
+// base64.StdEncoding.EncodeToString([]byte("hello world"))
+
 func main() {
-	http.HandleFunc("/encode", encode)
-	http.HandleFunc("/decode", decode)
-	err := http.ListenAndServe(":8080", nil)
-	if err != nil {
-		return
+	//http.HandleFunc("/encode", encode)
+	//http.HandleFunc("/decode", decode)
+	//err := http.ListenAndServe(":8080", nil)
+	//if err != nil {
+	//	return
+	//}
+	password := "password"
+	var key []byte
+	for i := 1; i <= 64; i++ {
+		key = append(key, byte(rand.Int()))
 	}
+
+	hashedPassword, err := security.HashPassword(password)
+	checkError(err)
+	err = security.ComparePassword(password, hashedPassword)
+	if err != nil {
+		log.Fatalln("Not logged in. Error: ", err)
+	}
+	log.Println("Logged in")
 }
 
 func encode(w http.ResponseWriter, r *http.Request) {
