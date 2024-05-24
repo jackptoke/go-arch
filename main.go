@@ -13,7 +13,10 @@ type person struct {
 func main() {
 	http.HandleFunc("/encode", encode)
 	http.HandleFunc("/decode", decode)
-	http.ListenAndServe(":8080", nil)
+	err := http.ListenAndServe(":8080", nil)
+	if err != nil {
+		return
+	}
 }
 
 func encode(w http.ResponseWriter, r *http.Request) {
@@ -26,18 +29,19 @@ func encode(w http.ResponseWriter, r *http.Request) {
 
 	people := []person{p1, p2}
 	err := json.NewEncoder(w).Encode(people)
-	if err != nil {
-		log.Println(err)
-		return
-	}
+	checkError(err)
 }
 
 func decode(w http.ResponseWriter, r *http.Request) {
 	var people []person
 	err := json.NewDecoder(r.Body).Decode(&people)
+	checkError(err)
+	log.Println(people)
+}
+
+func checkError(err error) {
 	if err != nil {
 		log.Println(err)
 		return
 	}
-	log.Println(people)
 }
